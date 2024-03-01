@@ -1,0 +1,54 @@
+<%- include("homePageAfterLogin.ejs") %>
+ <!DOCTYPE html>
+ <html lang="en">
+ <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Recipes</title>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="/styles/my_recipes.css">
+    <link rel="stylesheet" type="text/css" href="/styles/home_page_after_login.css">
+    <link rel="stylesheet" type="text/css" href="/styles/bootstrap-social.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@100..900&display=swap" rel="stylesheet">
+      <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+ </head>
+ <body>
+      <% if (locals.recipeDetails) { %>
+      <div class = "my_recipes_image_container main">
+         <% for(var i = 0; i < recipeDetails.length; i ++){ %>
+            <a href = "/recipe/<%= recipeDetails[i]._id %>" >
+               <div class = "my_recipes_image_div" id = "'my_recipes_image_id_' + <%= recipeDetails[i]._id %>">
+                  <img class = "my_recipes_image" src = "<%= recipeDetails[i].added_image_url %>" alt = "my recipe's image">
+                  <p class = "my_recipes_title"><%= recipeDetails[i].title %></p>
+               </div>
+            </a>
+            
+         <% } %>   
+      </div> 
+      <% } else { %>  
+         <p>No recipes in your account. Please add recipes.</p>
+      <% } %>   
+      
+ </body>
+ <script>
+  /* fetch('/myRecipes')
+      .then(response => response.json())
+      .then(data => {
+        const container = document.getElementById('my_recipes_image_container');
+        data.images.forEach(image => {
+          const div = document.createElement('div');
+          div.setAttribute("class", "my_recipes_image_div");
+          const img = document.createElement('img');
+          img.setAttribute("class", "my_recipes_image");
+          div.appendChild(img);
+          img.src = `${image}`;
+          container.appendChild(div);
+        });
+      })
+      .catch(error => console.error('Error fetching images:', error)); */
+ </script>
+ </html>

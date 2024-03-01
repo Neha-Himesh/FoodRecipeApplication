@@ -1,0 +1,27 @@
+.my_recipes_image_container {
+    display: grid;
+    grid-template-columns: repeat(3, 6fr); /* Adjust the minimum width as needed */
+    grid-template-rows: 270px;
+    grid-gap: 1.5rem; 
+}
+  
+  .my_recipes_image_div {
+    overflow: hidden; /* Ensure images don't overflow their container */
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .my_recipes_image {
+    width: 100%; /* Ensure images fill their container */
+    height: 100%;
+    object-fit: cover;
+    display: block; 
+  }
+
+  .my_recipes_title{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block; 
+  }

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang = "en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="/styles/login.css">
+    <link rel="stylesheet" type="text/css" href="/styles/bootstrap-social.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@100..900&display=swap" rel="stylesheet">
+      <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+    <title>Login Page</title>
+</head>
+<body>
+    <form action = "/login" method = "post" id="login_form">
+        <div class = "login_container">
+            <div class = "login_title_container">
+                <h1>Login</h1>
+                <p>Please login using your email and password created using register page</p>
+                <hr>
+            </div>
+            
+            <label for = "login_email"><b> Enter your registered Email Id</b></label>
+
+            <input type = "text" placeholder="Enter your registered Email Id" name="login_email" id="login_email" size="250" required>
+
+            <label for = "login_password"><b> Enter the password</b></label>
+
+            <input type = "password" placeholder="Enter the password" name="login_password" id="login_password" size="250" required>
+            
+            <p>Forgot Password? <a href="/forgotPasswordPage">Click Here</a></p>
+
+            <button type="submit" class="loginbtn btn btn-success" id="btnLoginSubmit">Login</button>
+        </div>
+    </form>
+</body>
+<script>
+     $(document).ready(function () {
+        $('#login_form').submit(function(event) {
+            event.preventDefault(); // Prevent form submission
+        
+            var email = $('#login_email').val().trim(); // Trim whitespace
+            var emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            if (!emailRegex.test(email)) {
+                $('#login_email')[0].setCustomValidity('Please enter a valid email address');
+                $('#login_email').focus(); // Set focus back to email input
+                return false; // Prevent form submission
+            }
+            else {
+                $('#login_email')[0].setCustomValidity('');
+            }
+            $(this).unbind('submit').submit();
+        });  
+        $('#login_email').on('input', function() {
+          document.getElementById("login_email").setCustomValidity('');
+        });  
+    });   
+
+</script>        
+</html>

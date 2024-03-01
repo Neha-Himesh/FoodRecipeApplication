@@ -1,0 +1,17 @@
+body{
+    background-image: url("../images/FoodRecipeCoverPageImage.jpg");
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.home_container{
+    display: flex;
+    width: 50%;
+    flex-direction: column;
+    align-content: space-around;
+    align-items: center;
+    justify-content: flex-start;
+    
+}
+

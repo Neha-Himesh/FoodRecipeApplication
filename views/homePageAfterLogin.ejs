@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="/styles/home_page_after_login.css">
+    <link rel="stylesheet" type="text/css" href="/styles/bootstrap-social.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@100..900&display=swap" rel="stylesheet">
+      <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+    <title>Food Recipes</title>
+</head>
+<body>
+    
+    <div id="home_page_after_login_side_nav" class="home_page_after_login_side_nav">
+        <p>Food Recipes</p>
+        <a href="/homePageAfterLogin">Home</a>
+        <a href="/myRecipes">My Recipes</a>
+        <a href="/addANewRecipePage">Add a new Recipe</a>
+        <a href="#">My Followers</a>
+        <a href="#">Me Following</a>
+    </div>
+    <div class="home_page_after_login_search_container">
+        <form action="/search" method="get">
+            <div class="input-group mb-4 home_page_after_login_search_div">  
+                <input type="text" class="home_page_after_login_search_box form-control" name="home_page_after_login_search_box" id="home_page_after_login_search_box" placeholder="Search for recipes based on ingredients, cuisine or difficulty level">
+                <div class="input-group-append">
+                    <button type="submit" class="home_page_after_login_search_button btn btn-success">Search</button>
+                </div>
+            </div>        
+        </form>
+    </div>
+    
+   
+
+</body>        
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+   
+/*
+$(document).ready(function() {
+    var skip = 0; // Initial skip value
+    var limit = 5; // Number of items to load at a time
+
+    function loadItems() {
+        $.ajax({
+            url: '/api/items', // Your backend API endpoint to fetch items
+            method: 'GET',
+            data: { skip: skip, limit: limit },
+            success: function(response) {
+                if (response.length > 0) {
+                    response.forEach(function(item) {
+                        $('#content').append('<div class="item">' + item.title + '</div>'); // Assuming item has a "title" field
+                    });
+                    skip += limit; // Update skip value for next request
+                }
+            }
+        });
+    }
+
+    // Initial load
+    loadItems();
+
+    // Detect when user scrolls to bottom
+    $(window).scroll(function() {
+        if ($(window).scrollTop() == $(document).height() - $(window).height()) {
+            loadItems(); // Load more items when scrolled to bottom
+        }
+    });
+});
+*/
+
+
+</script>
+</html>

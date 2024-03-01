@@ -1,0 +1,61 @@
+<%- include("homePageAfterLogin.ejs") %>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="/styles/add_a_new_recipe_page.css">
+    <link rel="stylesheet" type="text/css" href="/styles/bootstrap-social.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@100..900&display=swap" rel="stylesheet">
+      <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+    <title>Add a new recipe</title>
+</head>
+<body>
+    <form action="/addNewRecipe" method="post" id="new_recipe_form" enctype="multipart/form-data">
+        <div class="new_recipe_container main">
+          <div class="new_recipe_title_container">
+            <h1>Add a new recipe</h1>
+            <p>Please fill this form to add new recipe to your account</p>
+            <hr>
+          </div>
+        
+          <label for ="new_recipe_name"><b>Add the title for your new recipe</b></label>
+          <input type="text" placeholder="Add the title for your new recipe" name="new_recipe_name" id="new_recipe_name" required>
+  
+          <label for ="new_recipe_description"><b>Describe your recipe</b></label>
+          <input type="text" placeholder="Describe your recipe" name="new_recipe_description" id="new_recipe_description" required>
+
+          <label for="new_recipe_preparation_time"><b>Add the preparation time required for the recipe</b></label>
+          <input type="text" placeholder="Add the preparation time required for the recipe" name="new_recipe_preparation_time" id="new_recipe_preparation_time" required>
+  
+          <label for="new_recipe_cooking_time"><b>Add the cooking time required for the recipe</b></label>
+          <input type="text" placeholder="Add the cooking time required for the new_recipe" name="new_recipe_cooking_time" id="new_recipe_cooking_time" required>
+  
+          <label for="new_recipe_difficulty_level"><b>Enter the difficulty level</b></label>
+          <input type="text" placeholder="Enter the difficulty level" name="new_recipe_difficulty_level" id="new_recipe_difficulty_level" required>
+  
+          <label for="new_recipe_cuisine"><b>Add the cuisine the recipe belongs to</b></label>
+          <input type="text" placeholder="Add the cuisine the recipe belongs to" name="new_recipe_cuisine" id="new_recipe_cuisine" required>
+ 
+          <label for="new_recipe_visibility"><b>Add the visibility of the recipe (public / private)</b></label>
+          <input type="text" placeholder="Add the visibility of the recipe (public / private)" name="new_recipe_visibility" id="new_recipe_visibility" required>
+
+          <label for ="new_recipe_ingredients"><b>Enter the ingredients list</b></label>
+          <textarea placeholder="Enter the ingredients list" name="new_recipe_ingredients" rows="20" cols="50" id="new_recipe_ingredients" required></textarea><br>
+         
+          <label for="new_recipe_instructions"><b>Add the instructions for preparation</b></label>
+          <textarea placeholder="Add the instructions for preparation" name="new_recipe_instructions" rows="20" cols="50" id="new_recipe_instructions" required> </textarea>
+  
+          <label for="new_recipe_image_upload"><b>Add the image of the recipe</b></label>
+          <input type="file" name="new_recipe_image_upload" id = "new_recipe_image_upload" accept="image/*"> 
+
+          <button type="submit" class="recipeSubmitBtn btn btn-success" id="new_recipe_submit">Add the new recipe</button>
+        </div>
+    </form>    
+</body>
+</html>
