@@ -22,6 +22,6 @@ const userSchema = new MONGOOSE.Schema({
 userSchema.plugin(PASSPORT_LOCAL_MONGOOSE);
 userSchema.plugin(findOrCreate);
 // Create User model
-const USER = MONGOOSE.model('User', userSchema);
+const User = MONGOOSE.model('User', userSchema);
 
-module.exports = USER;
+module.exports = User;

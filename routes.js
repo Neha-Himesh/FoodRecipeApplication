@@ -5,23 +5,23 @@ const SESSION                    = require('express-session');
 const PASSPORT                   = require('passport');
 const LOCAL_STRATEGY             = require('passport-local').Strategy;
 const BODY_PARSER                 = require('body-parser');
-const USER                       = require("./schema");
+const User                       = require("./schema");
 const RECIPE                     = require("./recipeSchema");
-const { body, VALIDATION_RESULT } = require('express-validator');
+const { body, validationResult } = require('express-validator');
 const BCRYPT                     = require('bcrypt');
-const { GENERATE_TOKEN }          = require('./cryptoGenerateToken');
-const { SEND_EMAIL }              = require('./reminderService');
-const { STORAGE }                = require('@google-cloud/storage');
+const { generateToken }          = require('./cryptoGenerateToken');
+const { sendEmail }              = require('./reminderService');
+const { Storage }                = require('@google-cloud/storage');
 const PATH                       = require('path');
 const MULTER                     = require('multer');
 const STORAGE                    = MULTER.memoryStorage();
 const UPLOAD                     = MULTER({ storage: STORAGE });
 const FLASH                      = require('express-flash');
-const STORAGE_CLIENT              = new STORAGE({
+const STORAGE_CLIENT              = new Storage({
     projectId                    : process.env.projectId,
     keyFilename                  : process.env.keyFilename // Replace with your service account key file
   });
-const BUCKET                     = STORAGE_CLIENT.BUCKET('food_recipe_bucket');
+const BUCKET                     = STORAGE_CLIENT.bucket('food_recipe_bucket');
 
 APP.use(EXPRESS.static("public"));
 APP.use(BODY_PARSER.urlencoded({ extended: false }));
@@ -36,16 +36,16 @@ APP.use(SESSION({
 
 // Initialize Passport
 APP.use(PASSPORT.initialize());
-APP.use(PASSPORT.SESSION());
+APP.use(PASSPORT.session());
 
 
 // Configure the local strategy for Passport
-PASSPORT.use(new LocalStrategy({
+PASSPORT.use(new LOCAL_STRATEGY({
     usernameField: 'login_email', // Assuming email is used for login
     passwordField: 'login_password'
 }, async (email, password, done) => {
     try {
-        const user = await USER.findOne({ email: email });
+        const user = await User.findOne({ email: email });
         if (!user) {
             return done(null, false, { message: 'Invalid email' });
         }
@@ -66,7 +66,7 @@ PASSPORT.serializeUser((user, done) => {
 
 PASSPORT.deserializeUser(async (id, done) => {
     try {
-        const user = await USER.findById(id);
+        const user = await User.findById(id);
         done(null, user);
     } catch (error) {
         done(error);
@@ -93,7 +93,7 @@ APP.get("/forgotPasswordPage", function(req, res){
 
 APP.get("/homepageAfterLogin", function(req,res){
     if (req.isAuthenticated()){
-        req.SESSION.user = req.user;
+        req.session.user = req.user;
         res.render("homePageAfterLogin.ejs");
     } else{
         res.render("login.ejs");
@@ -112,7 +112,7 @@ APP.get("/addANewRecipePage", function(req, res){
 
 APP.get("/myRecipes", async function(req, res){
     if(req.isAuthenticated()){
-        const myRecipes = await RECIPE.find({email_id : req.SESSION.user.email});
+        const myRecipes = await RECIPE.find({email_id : req.session.user.email});
         const recipeDetails = [];
         if (myRecipes){
             //declare variable and see what to be done 
@@ -120,13 +120,16 @@ APP.get("/myRecipes", async function(req, res){
                 const recipe ={
                     id: myRecipes[i]._id,
                     imageURL: myRecipes[i].added_image_url,
-                    title: myRecipes[i].title
+                    title: myRecipes[i].title,
                 };
                recipeDetails.push(recipe);
+               console.log(myRecipes[i].added_image_url);
+               //console.log(myRecipes[i].title);
             }
+            console.log(recipeDetails);
         }
         //console.log(myRecipes[0]);
-        res.render("myRecipes.ejs",{recipeDetails});
+        res.render("myRecipes.ejs",{recipeDetails : recipeDetails});
     } else {
         res.render("login.ejs");
     }
@@ -147,7 +150,7 @@ APP.post('/register',
     body('dob').isDate().withMessage('Invalid date of birth'),
 
     body('email').isEmail().normalizeEmail({gmail_remove_dots: false}).custom(async value => {
-        const user = await USER.find({
+        const user = await User.find({
             email: value
         });
         if (user.length > 0) {
@@ -159,7 +162,7 @@ APP.post('/register',
         const hasCapitalAlphabet = /[A-Z]/.test(value);
         const hasMentionedSpecialCharacter = /[ `!@#$%^&*()+\-=\[\]{};':"\\|,<>\/?~]/.test(value);
         const isValidLength = value.length >= 4;
-        const user = await USER.find({
+        const user = await User.find({
             username: value
         });
         if (hasMentionedSpecialCharacter){
@@ -197,7 +200,7 @@ APP.post('/register',
 
     async (req, res) => {
         // Validate incoming input
-        const errors = VALIDATION_RESULT(req);
+        const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.send({ error: errors.array() }); 
         }
@@ -211,7 +214,7 @@ APP.post('/register',
             const hashedPassword = await BCRYPT.hash(password, saltRounds);
 
             // Create a new user with the hashed password
-            const newUser = new USER({
+            const newUser = new User({
                 first_name,
                 last_name, 
                 country_name, 
@@ -225,7 +228,7 @@ APP.post('/register',
 
             // Save the new user to the database
             await newUser.save();
-            //const findTheAboveUser = await USER.findOne({email : email });
+            //const findTheAboveUser = await User.findOne({email : email });
             // Send a success response
             res.status(200).send("Registration successful. Please login with the registered email id");
         } catch (error) {
@@ -245,20 +248,20 @@ APP.post("/login",
         //failureFlash: true // Enable flash messages for failed login attempts
     }), 
     (req, res) =>{
-        req.SESSION.user = req.user; // Store user details in session
+        req.session.user = req.user; // Store user details in session
         res.redirect('/homePageAfterLogin'); // Redirect to home page
     }
 ); 
 APP.post("/forgotPassword", async function(req,res){
     const enteredEmailId = req.body.forgot_password_page_email;
-    const userEnteredEmailidVerification = await USER.findOne({email: enteredEmailId});
+    const userEnteredEmailidVerification = await User.findOne({email: enteredEmailId});
     if (userEnteredEmailidVerification){
-        const token = GENERATE_TOKEN();
+        const token = generateToken();
         const message = 'Hi, this is system generated email. Please enter the below token in the Create New Password page to reset the password (The token is only valid for 10 minutes):  '+ token;
-        const emailSent = await SEND_EMAIL(enteredEmailId, message, token);
+        const emailSent = await sendEmail(enteredEmailId, message, token);
         if (emailSent){
             console.log('Password reset token has been sent to the email address.')
-            const userUpdatedData = await USER.updateOne( 
+            const userUpdatedData = await User.updateOne( 
                 { email: enteredEmailId},
                 {$set: {
                     token: token,
@@ -308,13 +311,13 @@ APP.post("/createNewPassword",
         return true;
     }), 
     async function(req,res){
-        const errors = VALIDATION_RESULT(req);
+        const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.send({ error: errors.array() }); 
         } else {
             console.log(req.body.create_new_password_page_token);
             const enteredToken = req.body.create_new_password_page_token;
-            const verificationOfEnteredToken = await USER.findOne({token: enteredToken});
+            const verificationOfEnteredToken = await User.findOne({token: enteredToken});
             console.log(verificationOfEnteredToken);
             if(verificationOfEnteredToken){
                 console.log('Document: ' + verificationOfEnteredToken);
@@ -322,7 +325,7 @@ APP.post("/createNewPassword",
                 if (verificationOfEnteredToken.token_expiry > new Date()){
                     const saltRounds = 10;
                     const hashedPassword = await BCRYPT.hash(req.body.create_new_password_page_new_password, saltRounds);
-                    const updatedPassword = await USER.updateOne({ token: enteredToken }, {password: hashedPassword});
+                    const updatedPassword = await User.updateOne({ token: enteredToken }, {password: hashedPassword});
                     if(updatedPassword){
                         console.log("Password updated successfully.Login with new password");
                         //res.json({success: true, message:"Password updated successfully. Login with new password"});
@@ -371,7 +374,7 @@ APP.post("/addNewRecipe",
  
   async function(req, res){
     
-    const errors = VALIDATION_RESULT(req);
+    const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.send({ error: errors.array() }); 
     }
@@ -392,7 +395,7 @@ APP.post("/addNewRecipe",
               // Store image URL in MongoDB
             const added_image_url = `https://storage.googleapis.com/${BUCKET.name}/${blob.name}`;
             console.log("Url of stored image in GCP is added successfully");
-            console.log("Req.user", req.SESSION.user);  
+            console.log("Req.user", req.session.user);  
               // Save recipe data to MongoDB
             const newRecipe = new RECIPE({
                 title : req.body.new_recipe_name,
@@ -405,8 +408,8 @@ APP.post("/addNewRecipe",
                 ingredients : req.body.new_recipe_ingredients,
                 instructions : req.body.new_recipe_instructions,
                 added_image_url : added_image_url,
-                email_id : req.SESSION.user.email,
-                username : req.SESSION.user.username,
+                email_id : req.session.user.email,
+                username : req.session.user.username,
             });
             
             try{
@@ -447,7 +450,7 @@ async function deleteImageFromGCS(BUCKET, fileName) {
     body('login_password').notEmpty().withMessage('Password is required'),
     
     async(req,res) =>{
-        const errors = VALIDATION_RESULT(req);
+        const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.send({error: errors.array()}); 
         }
@@ -455,7 +458,7 @@ async function deleteImageFromGCS(BUCKET, fileName) {
         const {login_email, login_password} = req.body;
         
         try {
-            const user = await USER.findOne({ email: login_email});
+            const user = await User.findOne({ email: login_email});
             console.log(user);
             if (!user) {
               // No user found with provided email and password

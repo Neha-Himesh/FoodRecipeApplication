@@ -22,7 +22,7 @@
          <% for(var i = 0; i < recipeDetails.length; i ++){ %>
             <a href = "/recipe/<%= recipeDetails[i]._id %>" >
                <div class = "my_recipes_image_div" id = "'my_recipes_image_id_' + <%= recipeDetails[i]._id %>">
-                  <img class = "my_recipes_image" src = "<%= recipeDetails[i].added_image_url %>" alt = "my recipe's image">
+                  <img class = "my_recipes_image" src = "<%= recipeDetails[i].imageURL %>" alt = "my recipe's image">
                   <p class = "my_recipes_title"><%= recipeDetails[i].title %></p>
                </div>
             </a>

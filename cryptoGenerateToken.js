@@ -4,4 +4,4 @@ function generateToken() {
     return crypto.randomBytes(20).toString('hex');
   }
 
-  module.exports = { GENERATE_TOKEN }; 
+  module.exports = { generateToken }; 

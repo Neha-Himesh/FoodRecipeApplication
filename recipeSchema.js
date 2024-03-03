@@ -18,7 +18,7 @@ const RECIPE_SCHEMA = new MONGOOSE.Schema({
     visibility      : {type: String, required: true, unique : false },
     ingredients     : {type: String, required: true, unique : false },
     instructions    : {type: String, required: true, unique : false },
-    //added_image_url : {type: String, required: false, unique : true },
+    added_image_url : {type: String, required: false, unique : true },
     average_rating  : {type: Number, required: false, unique : false },
     
 });

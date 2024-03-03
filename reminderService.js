@@ -3,7 +3,6 @@
 const TRANSPORTER = require('./emailConfig');
 
 
-
 async function sendEmail(receiverEmail, message, token) {
   // Set up the scheduled reminder
     
@@ -22,4 +21,4 @@ async function sendEmail(receiverEmail, message, token) {
   
 }
 
-module.exports = { SEND_EMAIL };
+module.exports = { sendEmail };
