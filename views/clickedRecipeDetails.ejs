@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= clickedRecipeDetails.title %></title>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="/styles/clicked_recipe_details.css">
+    <link rel="stylesheet" type="text/css" href="/styles/bootstrap-social.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@100..900&display=swap" rel="stylesheet">
+      <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+</head>
+<body>
+    <button  onclick="goBack()">Back</button>
+    <% if (locals.clickedRecipeDetails) { %>
+        <div class = "clicked_recipe_details_container">
+            <p><b>Recipe's title: </b><%= clickedRecipeDetails.title %></p>
+            <p><img class = "clickedRecipeDetails_image" src = "<%= clickedRecipeDetails.added_image_url %>" alt ="<%= clickedRecipeDetails.title %>"></p>
+            <p><b>Recipe's description: </b><%= clickedRecipeDetails.description %></p>
+            <p><b>Recipe's preparation time: </b> <%= clickedRecipeDetails.prep_time %></p>
+            <p><b>Recipe's cooking time: </b><%= clickedRecipeDetails.cook_time %></p>
+            <p><b>Recipe's difficulty level: </b><%= clickedRecipeDetails.difficulty_level %></p>
+            <p><b>Recipe's cuisine: </b><%= clickedRecipeDetails.cuisine %></p>
+            <p><b>Recipe's visibility: </b><%= clickedRecipeDetails.visibility %></p>
+            <p><b>Recipe's ingredients: </b><%= clickedRecipeDetails.ingredients %></p>
+            <p><b>Recipe's instructions: </b><%= clickedRecipeDetails.instructions %></p>
+            <p><b>Recipe's average_rating: </b><%= clickedRecipeDetails.average_rating %></p>
+        </div>
+        
+    <% } %>    
+</body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+    function goBack(){
+        $.ajax({
+          type: "GET",
+          url: "/myRecipes",
+          success: function (response) {
+            console.log("Response is:", response);
+            window.location.href = "/myRecipes";
+          },  
+          error: function (error) {
+            console.error("Error is:", error);
+          }
+        });
+    }
+
+</script>
+</html>

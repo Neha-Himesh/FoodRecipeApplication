@@ -136,6 +136,24 @@ APP.get("/myRecipes", async function(req, res){
     
 });
 
+APP.get('/recipe/:id', async function(req,res){
+    if (req.isAuthenticated()) {
+        try {
+            const clickedRecipeDetails = await RECIPE.findById(req.params.id);
+            if (clickedRecipeDetails) {
+                res.render("clickedRecipeDetails.ejs", { clickedRecipeDetails: clickedRecipeDetails });
+            } else {
+                res.status(404).send("Recipe Details not found");
+            }
+        } catch (error) {
+            console.error(error);
+            res.status(500).send("Internal Server Error");
+        }
+    } else {
+        // Handle authentication failure
+        res.status(401).send("Unauthorized");
+    }
+});
 
 APP.post('/register',
 
