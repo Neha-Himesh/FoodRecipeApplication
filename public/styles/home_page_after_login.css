@@ -55,6 +55,12 @@ html{
   background-color: #28a745;
   font-size: 18px; 
 }
+
+.home_page_after_login_logout_button{
+  border: none;
+  background-color: transparent;
+}
+
   
 @media screen and (max-height: 450px) {
   .home_page_after_login_side_nav {padding-top: 15px;}

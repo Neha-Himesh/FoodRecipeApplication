@@ -4,9 +4,10 @@ const APP                        = EXPRESS();
 const SESSION                    = require('express-session');
 const PASSPORT                   = require('passport');
 const LOCAL_STRATEGY             = require('passport-local').Strategy;
-const BODY_PARSER                 = require('body-parser');
+const BODY_PARSER                = require('body-parser');
 const User                       = require("./schema");
 const RECIPE                     = require("./recipeSchema");
+const COMMENTS                   = require('./commentsSchema')
 const { body, validationResult } = require('express-validator');
 const BCRYPT                     = require('bcrypt');
 const { generateToken }          = require('./cryptoGenerateToken');
@@ -17,7 +18,7 @@ const MULTER                     = require('multer');
 const STORAGE                    = MULTER.memoryStorage();
 const UPLOAD                     = MULTER({ storage: STORAGE });
 const FLASH                      = require('express-flash');
-const STORAGE_CLIENT              = new Storage({
+const STORAGE_CLIENT             = new Storage({
     projectId                    : process.env.projectId,
     keyFilename                  : process.env.keyFilename // Replace with your service account key file
   });
@@ -87,6 +88,17 @@ APP.get("/login", function(req, res){
     res.render("login.ejs");
 });
 
+APP.get('/logout', function(req, res){
+    req.logout((err) => {
+        if (err) {
+          console.error("Error logging out:", err);
+          return next(err);
+        }
+        res.redirect('/');
+     // Redirect to home page or login page
+    }); 
+});
+
 APP.get("/forgotPasswordPage", function(req, res){
     res.render("forgotPasswordPage.ejs");
 });
@@ -94,7 +106,7 @@ APP.get("/forgotPasswordPage", function(req, res){
 APP.get("/homepageAfterLogin", function(req,res){
     if (req.isAuthenticated()){
         req.session.user = req.user;
-        res.render("homePageAfterLogin.ejs");
+        res.render("homePageAfterLogin.ejs", {loggedInUsername : req.session.user.username});
     } else{
         res.render("login.ejs");
     }
@@ -136,12 +148,19 @@ APP.get("/myRecipes", async function(req, res){
     
 });
 
-APP.get('/recipe/:id', async function(req,res){
+APP.get('/clickedRecipe/:id', async function(req,res){
     if (req.isAuthenticated()) {
         try {
             const clickedRecipeDetails = await RECIPE.findById(req.params.id);
+            const commentsDetails = await COMMENTS.find({recipe_id: req.params.id});
             if (clickedRecipeDetails) {
-                res.render("clickedRecipeDetails.ejs", { clickedRecipeDetails: clickedRecipeDetails });
+                if (commentsDetails){
+                    res.render("clickedRecipeDetails.ejs", { clickedRecipeDetails: clickedRecipeDetails, commentsDetails: commentsDetails });
+                }
+                else{
+                    console.log("No comments to display");
+                    res.render("clickedRecipeDetails.ejs", { clickedRecipeDetails: clickedRecipeDetails });
+                }
             } else {
                 res.status(404).send("Recipe Details not found");
             }
@@ -153,6 +172,39 @@ APP.get('/recipe/:id', async function(req,res){
         // Handle authentication failure
         res.status(401).send("Unauthorized");
     }
+});
+
+APP.post('/clickedRecipeComments/:id', async function(req,res){
+    if (req.isAuthenticated()) {
+        try {
+            const recipeDetails = await RECIPE.findById(req.params.id);
+            if (recipeDetails){
+                const recipeComment = new COMMENTS({
+                    content: req.body.CommentText,
+                    timestamp: new Date(),
+                    recipe_id: req.params.id,
+                    username:  recipeDetails.username,
+                    likes: 0,
+                });
+                const savedCommentDetails = await recipeComment.save();
+                if (savedCommentDetails){
+                    res.status(200).send("Comment added successfully");
+                } else{
+                    res.status(404).send("Error in adding comment");
+                }
+                
+            } else {
+                res.status(404).send("Recipe Details not found");
+            }
+           
+        } catch (error) {
+            console.error(error);
+            res.status(500).send("Internal Server Error");
+        }
+    } else {
+        // Handle authentication failure
+        res.status(401).send("Unauthorized");
+    } 
 });
 
 APP.post('/register',

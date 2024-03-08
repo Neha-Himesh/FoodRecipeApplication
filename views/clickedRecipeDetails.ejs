@@ -13,12 +13,14 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@100..900&display=swap" rel="stylesheet">
       <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+ 
 </head>
+
 <body>
     <button  onclick="goBack()">Back</button>
     <% if (locals.clickedRecipeDetails) { %>
-        <div class = "clicked_recipe_details_container">
+        <div class = "clicked_recipe_details_container" id = "<%= 'clicked_recipe_details_id_' +clickedRecipeDetails._id  %>">
             <p><b>Recipe's title: </b><%= clickedRecipeDetails.title %></p>
             <p><img class = "clickedRecipeDetails_image" src = "<%= clickedRecipeDetails.added_image_url %>" alt ="<%= clickedRecipeDetails.title %>"></p>
             <p><b>Recipe's description: </b><%= clickedRecipeDetails.description %></p>
@@ -30,11 +32,32 @@
             <p><b>Recipe's ingredients: </b><%= clickedRecipeDetails.ingredients %></p>
             <p><b>Recipe's instructions: </b><%= clickedRecipeDetails.instructions %></p>
             <p><b>Recipe's average_rating: </b><%= clickedRecipeDetails.average_rating %></p>
+            <% if (locals.commentsDetails) { %>
+              <p><button id = "clicked_recipe_details_comments_button" onclick="toggleComments()"><b>View all the comments</b></button></p>
+              <div id="clicked_recipe_details_comments_section" style="display: none;">
+                <% for(var i = 0; i < commentsDetails.length; i++) { %>
+                  <div id="<%= 'clicked_recipe_comments_display' + i %>" class="clicked_recipe_comments_display">
+                    <div class = "clicked_recipe_comments_display_username_and_time_container"> 
+                      <p><%= commentsDetails[i].username %></p>
+                      <p id ="<%='clicked_recipe_comments_display_timestamp'+ i%>"><%= commentsDetails[i].timestamp%></p>
+                    </div>
+                    <p><%= commentsDetails[i].content %></p>
+                  </div>
+                <% } %>  
+              </div>
+            <% } %>
+            <div class="input-group mb-4 home_page_after_login_search_div">  
+              <textarea  placeholder="Add your comments here" name="clicked_recipe_comments_textarea" rows="1" cols="116" id="clicked_recipe_comment_textarea"></textarea>
+              <div class="input-group-append">
+                <button type="submit" onclick="addComments()" class="clicked_recipe_comments_enter_button"> <i class="fas fa-arrow-right"></i></button>
+              </div>
+            </div>
         </div>
         
     <% } %>    
 </body>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
 <script>
     function goBack(){
         $.ajax({
@@ -49,6 +72,69 @@
           }
         });
     }
+    function addComments(){
+      var div_container_id = document.querySelector('[id^="clicked_recipe_details_id_"]').id.split("_");
+      var div_container_id_split = div_container_id[4];
+      var addedCommentText = document.getElementById("clicked_recipe_comment_textarea").value;
+     
+      $.ajax({
+          type: "POST",
+          url: "/clickedRecipeComments/" + div_container_id_split,
+          data: { CommentText: addedCommentText },
+          success: function (response) {
+            console.log("Response is:", response);
+            window.location.href = "/clickedRecipe/" + div_container_id_split;
+          },  
+          error: function (error) {
+            console.error("Error is:", error);
+          }
+        });
+    }
+
+    function toggleComments(){
+      var commentsSection = document.getElementById("clicked_recipe_details_comments_section");
+        if (commentsSection.style.display === "none") {
+            commentsSection.style.display = "block";
+            document.getElementById("clicked_recipe_details_comments_button").innerText= "Hide the comments";
+        } else {
+            commentsSection.style.display = "none";
+            document.getElementById("clicked_recipe_details_comments_button").innerText= "View all the comments";
+        }
+    }
+
+    function formatTimeAgo(timestamp) {
+      const currentTime = new Date();
+      const commentTime = new Date(timestamp);
+      console.log(typeof(timestamp));
+      console.log(`currentTime ${currentTime}`);
+      console.log(`commentTime ${commentTime}`);
+      const timeDifference = currentTime - commentTime;
+      console.log(timeDifference);
+      const seconds = Math.floor(timeDifference / 1000);
+      const minutes = Math.floor(seconds / 60);
+      const hours = Math.floor(minutes / 60);
+      const days = Math.floor(hours / 24);
+
+      if (days > 0) {
+          return days === 1 ? "1 day ago" : `${days} days ago`;
+      } else if (hours > 0) {
+          return hours === 1 ? "1 hour ago" : `${hours} hours ago`;
+      } else if (minutes > 0) {
+          return minutes === 1 ? "1 minute ago" : `${minutes} minutes ago`;
+      } else {
+          return "Just now";
+      }
+    }
+
+    window.onload = function() {
+        // Get the paragraph element
+        var timestampParagraphs = document.querySelectorAll('[id^="clicked_recipe_comments_display_timestamp"]');
+        // Call the formatData function and set the innerHTML of the paragraph to the formatted data
+        for (var i = 0; i < timestampParagraphs.length; i ++){
+          timestampParagraphs[i].innerHTML = formatTimeAgo(timestampParagraphs[i].innerText);
+        }
+        
+    };
 
 </script>
 </html>
