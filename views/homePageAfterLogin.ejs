@@ -19,9 +19,9 @@
         <div id="home_page_after_login_side_nav" class="home_page_after_login_side_nav">  
             <p>Hi, <%= loggedInUsername %> </p>
             <p>Welcome back to Food Recipes!</p>
-            <a href="/homePageAfterLogin">Home</a>
-            <a href="/myRecipes">My Recipes</a>
-            <a href="/addANewRecipePage">Add a new Recipe</a>
+            <a href="/home-page-after-login">Home</a>
+            <a href="/my-recipes">My Recipes</a>
+            <a href="/add-a-new-recipe-page">Add a new Recipe</a>
             <a href="#">My Followers</a>
             <a href="#">Me Following</a>
             <!--<form action="/logout" method="GET">
@@ -33,7 +33,7 @@
             
         </div>
         <div class="home_page_after_login_search_container">
-            <form action="/search" method="get">
+            <form action="/home-page-after-login/search" method="post">
                 <div class="input-group mb-4 home_page_after_login_search_div">  
                     <input type="text" class="home_page_after_login_search_box form-control" name="home_page_after_login_search_box" id="home_page_after_login_search_box" placeholder="Search for recipes based on ingredients, cuisine or difficulty level">
                     <div class="input-group-append">

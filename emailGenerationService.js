@@ -5,7 +5,6 @@ const TRANSPORTER = require('./emailConfig');
 
 async function sendEmail(receiverEmail, message, token) {
   // Set up the scheduled reminder
-    
     // Send the email
     const mailOptions = {
       from   : 'nehahimesh.10@gmail.com',

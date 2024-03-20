@@ -11,7 +11,7 @@ const COMMENTS                   = require('./commentsSchema')
 const { body, validationResult } = require('express-validator');
 const BCRYPT                     = require('bcrypt');
 const { generateToken }          = require('./cryptoGenerateToken');
-const { sendEmail }              = require('./reminderService');
+const { sendEmail }              = require('./emailGenerationService');
 const { Storage }                = require('@google-cloud/storage');
 const PATH                       = require('path');
 const MULTER                     = require('multer');
@@ -99,11 +99,11 @@ APP.get('/logout', function(req, res){
     }); 
 });
 
-APP.get("/forgotPasswordPage", function(req, res){
+APP.get("/forgot-password-page", function(req, res){
     res.render("forgotPasswordPage.ejs");
 });
 
-APP.get("/homepageAfterLogin", function(req,res){
+APP.get("/home-page-after-login", function(req,res){
     if (req.isAuthenticated()){
         req.session.user = req.user;
         res.render("homePageAfterLogin.ejs", {loggedInUsername : req.session.user.username});
@@ -113,7 +113,7 @@ APP.get("/homepageAfterLogin", function(req,res){
    
 });
 
-APP.get("/addANewRecipePage", function(req, res){
+APP.get("/add-a-new-recipe-page", function(req, res){
     if(req.isAuthenticated()){
         res.render("addANewRecipePage.ejs");
     } else {
@@ -122,7 +122,7 @@ APP.get("/addANewRecipePage", function(req, res){
     
 });
 
-APP.get("/myRecipes", async function(req, res){
+APP.get("/my-recipes", async function(req, res){
     if(req.isAuthenticated()){
         const myRecipes = await RECIPE.find({email_id : req.session.user.email});
         const recipeDetails = [];
@@ -148,7 +148,7 @@ APP.get("/myRecipes", async function(req, res){
     
 });
 
-APP.get('/clickedRecipe/:id', async function(req,res){
+APP.get('/clicked-recipe/:id', async function(req,res){
     if (req.isAuthenticated()) {
         try {
             const clickedRecipeDetails = await RECIPE.findById(req.params.id);
@@ -174,7 +174,48 @@ APP.get('/clickedRecipe/:id', async function(req,res){
     }
 });
 
-APP.post('/clickedRecipeComments/:id', async function(req,res){
+APP.post('/home-page-after-login/search', async function (req,res){
+    if(req.isAuthenticated()){
+        const keywordsTyped = req.body.home_page_after_login_search_box;
+        const stopwords = new Set(["a", "an", "the", "in", "is", "for", "be", "but"]);
+        const recipes = await RECIPE.find();
+        //const allRecipesIngredientListArray = [];
+        function tokenize(text) {
+            return text.toLowerCase().split(/\W+/).filter(token => token.length > 0);
+        }
+        function removeStopwords(tokens) {
+            return tokens.filter(token => !stopwords.has(token));
+        }
+        function searchRecipes(keywords) {
+            const matchingRecipes = [];
+            
+            recipes.forEach(recipe => {
+                // Check if any keyword matches the recipe title or ingredients
+                const recipeIngredientsToArray = recipe.ingredients.split("\n");
+
+                if (keywords.some(keyword => recipe.title.toLowerCase().includes(keyword)) ||
+                    (recipeIngredientsToArray.some(ingredient =>{
+                        keywords.some(keyword => ingredient.includes(keyword))}))){
+                                
+                        matchingRecipes.push(recipe);       
+                     }
+            })
+                    //allRecipesIngredientListArray.some(eachRecipe => eachRecipe.some(ingredient => keywords.some(keyword => ingredient.includes(keyword))))){
+                    //matchingRecipes.push(recipe);
+                return matchingRecipes;    
+            }
+            
+        const tokenizedText = tokenize(keywordsTyped);
+        const stopWordsRemovedTokens = removeStopwords(tokenizedText);
+        const results = searchRecipes(stopWordsRemovedTokens);
+        console.log("result: " + results);
+    }
+    else{
+        res.render("login.ejs");
+    }
+});
+
+APP.post('/clicked-recipe-comments/:id', async function(req,res){
     if (req.isAuthenticated()) {
         try {
             const recipeDetails = await RECIPE.findById(req.params.id);
@@ -322,7 +363,7 @@ APP.post("/login",
         res.redirect('/homePageAfterLogin'); // Redirect to home page
     }
 ); 
-APP.post("/forgotPassword", async function(req,res){
+APP.post("/forgot-password", async function(req,res){
     const enteredEmailId = req.body.forgot_password_page_email;
     const userEnteredEmailidVerification = await User.findOne({email: enteredEmailId});
     if (userEnteredEmailidVerification){
@@ -359,7 +400,7 @@ APP.post("/forgotPassword", async function(req,res){
 });
 
 
-APP.post("/createNewPassword",
+APP.post("/create-new-password",
     body('create_new_password_page_token').notEmpty().withMessage('Token is required'),
 
     body('create_new_password_page_new_password').notEmpty().withMessage('New password is required').custom((value, {req}) => {
@@ -420,7 +461,7 @@ APP.post("/createNewPassword",
         
 });
 
-APP.post("/addNewRecipe",
+APP.post("/add-new-recipe",
 
   UPLOAD.single('new_recipe_image_upload'),
 

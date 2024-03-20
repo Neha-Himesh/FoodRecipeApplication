@@ -79,7 +79,7 @@
      
       $.ajax({
           type: "POST",
-          url: "/clickedRecipeComments/" + div_container_id_split,
+          url: "/clicked-recipe-comments/" + div_container_id_split,
           data: { CommentText: addedCommentText },
           success: function (response) {
             console.log("Response is:", response);

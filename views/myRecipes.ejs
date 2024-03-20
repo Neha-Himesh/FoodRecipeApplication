@@ -20,7 +20,7 @@
       <% if (locals.recipeDetails) { %>
       <div class = "my_recipes_image_container main">
          <% for(var i = 0; i < recipeDetails.length; i ++){ %>
-            <a href = "/clickedRecipe/<%= recipeDetails[i].id %>" >
+            <a href = "/clicked-recipe/<%= recipeDetails[i].id %>" >
                <div class = "my_recipes_image_div" id = "'my_recipes_image_id_' + <%= recipeDetails[i]._id %>">
                   <img class = "my_recipes_image" src = "<%= recipeDetails[i].imageURL %>" alt = "my recipe's image">
                   <p class = "my_recipes_title"><%= recipeDetails[i].title %></p>
