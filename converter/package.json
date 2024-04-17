@@ -1,0 +1,26 @@
+{
+  "name": "converter",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "mocha tests/login.test.js"
+  },
+  "author": "Neha",
+  "license": "ISC",
+  "dependencies": {
+    "@types/chai": "^4.3.14",
+    "bcrypt": "^5.1.1",
+    "chai": "^5.1.0",
+    "chai-http": "^4.4.0",
+    "dotenv": "^16.4.5",
+    "express-validator": "^7.0.1",
+    "mocha": "^10.4.0",
+    "passport": "^0.7.0",
+    "save-dev": "^0.0.1-security"
+  }
+}
