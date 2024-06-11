@@ -14,6 +14,7 @@
   "license": "ISC",
   "dependencies": {
     "@types/chai": "^4.3.14",
+    "@types/chai-http": "^4.2.0",
     "bcrypt": "^5.1.1",
     "chai": "^5.1.0",
     "chai-http": "^4.4.0",
@@ -22,5 +23,8 @@
     "mocha": "^10.4.0",
     "passport": "^0.7.0",
     "save-dev": "^0.0.1-security"
+  },
+  "devDependencies": {
+    "@faker-js/faker": "^8.4.1"
   }
 }

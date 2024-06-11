@@ -11,6 +11,7 @@ const COMMENTS                   = require('../src/models/commentsSchema')
 const { body, validationResult } = require('express-validator');
 const BCRYPT                     = require('bcrypt');
 const { generateToken }          = require('../cryptoGenerateToken');
+const { faker }                  = require('@faker-js/faker');
 const { sendEmail }              = require('../emailGenerationService');
 const { Storage }                = require('@google-cloud/storage');
 const PATH                       = require('path');
@@ -621,6 +622,7 @@ async function deleteImageFromGCS(BUCKET, fileName) {
           }
     
     }); */
-          
+   
+   
 
 module.exports = APP;    
