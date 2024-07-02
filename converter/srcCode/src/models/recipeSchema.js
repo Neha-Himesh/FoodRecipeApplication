@@ -10,7 +10,7 @@ const uri = 'mongodb://127.0.0.1:27017/RecipesUsers';
 
 async function connectToDatabase() {
   try {
-    await MONGOOSE.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+    await MONGOOSE.connect(uri);
     console.log("Connected to MongoDB");
   } catch (error) {
     console.error("Error connecting to MongoDB:", error);
@@ -35,6 +35,8 @@ const recipeSchema = new MONGOOSE.Schema({
   average_rating  : { type: Number, required: false, unique: false },
 });
 
+recipeSchema.index({ title: 'text', ingredients: 'text' });
+
 recipeSchema.plugin(passportLocalMongoose);
 recipeSchema.plugin(findOrCreate);
 
@@ -56,12 +58,12 @@ function createRandomRecipe(username, email) {
     ingredients: faker.lorem.sentences(3),
     instructions: faker.lorem.paragraphs(2),
     added_image_url: faker.image.urlLoremFlickr({ category: 'food' }) + '?' + faker.string.uuid(),
-    average_rating: faker.number.float({ min: 1, max: 5, precision: 0.1 }),
+    average_rating: faker.number.float({ min: 1, max: 5, multipleOf: 0.1 }),
   };
 }
 
 // Generate an array of 5 random recipes
-const RECIPES = Array.from({ length: 50 }, createRandomRecipe);
+const RECIPES = Array.from({ length: 500 }, createRandomRecipe);
 
 async function insertRecipesToMongoDB() {
   try {
@@ -84,7 +86,7 @@ async function insertRecipesToMongoDB() {
   }
 }
 
-insertUsersToMongoDB().catch(console.error);
-insertRecipesToMongoDB().catch(console.error);
+//insertUsersToMongoDB().catch(console.error);
+//insertRecipesToMongoDB().catch(console.error);
 
 module.exports = Recipe;

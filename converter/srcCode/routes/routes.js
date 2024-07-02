@@ -1,29 +1,30 @@
 
-const EXPRESS                    = require('express');
-const APP                        = EXPRESS();
-const SESSION                    = require('express-session');
-const PASSPORT                   = require('passport');
-const LOCAL_STRATEGY             = require('passport-local').Strategy;
-const BODY_PARSER                = require('body-parser');
-const User                       = require("../src/models/schema");
-const RECIPE                     = require("../src/models/recipeSchema");
-const COMMENTS                   = require('../src/models/commentsSchema')
-const { body, validationResult } = require('express-validator');
-const BCRYPT                     = require('bcrypt');
-const { generateToken }          = require('../cryptoGenerateToken');
-const { faker }                  = require('@faker-js/faker');
-const { sendEmail }              = require('../emailGenerationService');
-const { Storage }                = require('@google-cloud/storage');
-const PATH                       = require('path');
-const MULTER                     = require('multer');
-const STORAGE                    = MULTER.memoryStorage();
-const UPLOAD                     = MULTER({ storage: STORAGE });
-const FLASH                      = require('express-flash');
-const STORAGE_CLIENT             = new Storage({
-    projectId                    : process.env.projectId,
-    keyFilename                  : process.env.keyFilename // Replace with your service account key file
+const EXPRESS                      = require('express');
+const APP                          = EXPRESS();
+const SESSION                      = require('express-session');
+const PASSPORT                     = require('passport');
+const sanitizeHtml                 = require('sanitize-html');
+const LOCAL_STRATEGY               = require('passport-local').Strategy;
+const BODY_PARSER                  = require('body-parser');
+const {User, insertUsersToMongoDB} = require("../src/models/schema");
+const RECIPE                       = require("../src/models/recipeSchema");
+const COMMENTS                     = require('../src/models/commentsSchema')
+const { body, validationResult }   = require('express-validator');
+const BCRYPT                       = require('bcrypt');
+const { generateToken }            = require('../cryptoGenerateToken');
+const { faker }                    = require('@faker-js/faker');
+const { sendEmail }                = require('../emailGenerationService');
+const { Storage }                  = require('@google-cloud/storage');
+const PATH                         = require('path');
+const MULTER                       = require('multer');
+const STORAGE                      = MULTER.memoryStorage();
+const UPLOAD                       = MULTER({ storage: STORAGE });
+const FLASH                        = require('express-flash');
+const STORAGE_CLIENT               = new Storage({
+    projectId                      : process.env.projectId,
+    keyFilename                    : process.env.keyFilename // Replace with your service account key file
   });
-const BUCKET                     = STORAGE_CLIENT.bucket('food_recipe_bucket');
+const BUCKET                       = STORAGE_CLIENT.bucket('food_recipe_bucket');
 
 APP.set('views', 'D:\\D\\Food Recipes Project\\converter\\srcCode\\src\\views');
 
@@ -158,7 +159,19 @@ APP.get('/clicked-recipe/:id', async function(req,res){
             const commentsDetails = await COMMENTS.find({recipe_id: req.params.id});
             if (clickedRecipeDetails) {
                 if (commentsDetails){
-                    res.render("clickedRecipeDetails.ejs", { clickedRecipeDetails: clickedRecipeDetails, commentsDetails: commentsDetails });
+                    function countReplies(replies){
+                        if (!Array.isArray(replies)) {
+                            return 0;
+                        }
+                        let totalCount = replies.length;
+                        commentsDetails.replies.forEach(reply =>{
+                        totalCount = totalCount + countReplies(reply.replies);
+                    });
+                    return totalCount;
+                    }
+                    const totalRepliesCount = countReplies(commentsDetails.replies);
+                    console.log(totalRepliesCount);
+                    res.render("clickedRecipeDetails.ejs", { clickedRecipeDetails: clickedRecipeDetails, commentsDetails: commentsDetails, commentTotalRepliesCount: totalRepliesCount });
                 }
                 else{
                     console.log("No comments to display");
@@ -177,57 +190,66 @@ APP.get('/clicked-recipe/:id', async function(req,res){
     }
 });
 
-APP.post('/home-page-after-login/search', async function (req,res){
-    if(req.isAuthenticated()){
+APP.post('/home-page-after-login/search', async function (req, res) {
+    if (req.isAuthenticated()) {
         const keywordsTyped = req.body.home_page_after_login_search_box;
         const stopwords = new Set(["a", "an", "the", "in", "is", "for", "be", "but"]);
-        const recipes = await RECIPE.find();
-        //const allRecipesIngredientListArray = [];
+
+        // Tokenize and remove stopwords
         function tokenize(text) {
             return text.toLowerCase().split(/\W+/).filter(token => token.length > 0);
         }
+
         function removeStopwords(tokens) {
             return tokens.filter(token => !stopwords.has(token));
         }
-        function searchRecipes(keywords) {
-            const matchingRecipes = [];
-            
-            recipes.forEach(recipe => {
-                // Check if any keyword matches the recipe title or ingredients
-                const recipeIngredientsToArray = recipe.ingredients.split("\n");
 
-                if (keywords.some(keyword => recipe.title.toLowerCase().includes(keyword)) ||
-                    (recipeIngredientsToArray.some(ingredient =>{
-                        keywords.some(keyword => ingredient.includes(keyword))}))){
-                                
-                        matchingRecipes.push(recipe);       
-                     }
-            })
-                    //allRecipesIngredientListArray.some(eachRecipe => eachRecipe.some(ingredient => keywords.some(keyword => ingredient.includes(keyword))))){
-                    //matchingRecipes.push(recipe);
-                return matchingRecipes;    
-            }
-            
         const tokenizedText = tokenize(keywordsTyped);
         const stopWordsRemovedTokens = removeStopwords(tokenizedText);
-        const results = searchRecipes(stopWordsRemovedTokens);
-        console.log("result: " + results);
-    }
-    else{
+
+        // Join the tokens to form a search string
+        const searchString = stopWordsRemovedTokens.join(" ");
+
+        // Ensure proper use of aggregate function
+       
+        try {
+            const results = await RECIPE.find(
+                { $text: { $search: searchString } },
+                { score: { $meta: "textScore" }, title: 1, ingredients: 1}
+            )
+            .sort({ score: { $meta: "textScore" } })
+            .limit(20)
+            .exec();
+            console.log("results length:", results.length);
+            console.log("result: ", results);
+            res.json(results); // Send results back to client or render a page with results
+        } catch (err) {
+            console.error(err);
+            res.status(500).send("Internal server error");
+        }
+           
+    } else {
         res.render("login.ejs");
     }
 });
+
 
 APP.post('/clicked-recipe-comments/:id', async function(req,res){
     if (req.isAuthenticated()) {
         try {
             const recipeDetails = await RECIPE.findById(req.params.id);
             if (recipeDetails){
+                const sanitizedContent = sanitizeHtml(req.body.CommentText, {
+                    allowedTags: [ 'b', 'i', 'em', 'strong', 'a', 'p', 'h1', 'h2', 'h3', 'img','li','ul', 'ol','u' ], // Add other allowed tags as needed
+                    allowedAttributes: {
+                        'a': [ 'href' ]
+                    },
+                });
                 const recipeComment = new COMMENTS({
-                    content: req.body.CommentText,
+                    content: sanitizedContent,
                     timestamp: new Date(),
                     recipe_id: req.params.id,
-                    username:  recipeDetails.username,
+                    username:  req.session.user.username,
                     likes: 0,
                 });
                 const savedCommentDetails = await recipeComment.save();
@@ -249,6 +271,45 @@ APP.post('/clicked-recipe-comments/:id', async function(req,res){
         // Handle authentication failure
         res.status(401).send("Unauthorized");
     } 
+});
+
+APP.post('/clicked-recipe-comment-reply/:id', async function(req,res){
+    if (req.isAuthenticated()) {
+        try {
+            const commentDetails = await COMMENTS.findById(req.params.id);
+            const usernameDetailsOfTypedComment = req.session.user.username;
+            if (commentDetails){
+                const sanitizedReplyContent = sanitizeHtml(req.body.commentReplyText, {
+                    allowedTags: [ 'b', 'i', 'em', 'strong', 'a', 'p', 'h1', 'h2', 'h3', 'img','li','ul', 'ol','u' ], // Add other allowed tags as needed
+                    allowedAttributes: {
+                        'a': [ 'href' ]
+                    },
+                });
+                const replyDetails = {
+                    likes: 0,
+                    username: usernameDetailsOfTypedComment,
+                    recipe_id: req.body.clickedRecipeDetailsIdSplit,
+                    timestamp: new Date(),
+                    content: sanitizedReplyContent,
+                };
+                commentDetails.replies.push(replyDetails);
+                await commentDetails.save(); 
+                
+                res.status(200).send("Comment added successfully")
+                
+            } else {
+                res.status(404).send("Comment not found");
+            }
+           
+        } catch (error) {
+            console.error(error);
+            res.status(500).send("Internal Server Error");
+        }
+    } else {
+        // Handle authentication failure
+        res.status(401).send("Unauthorized");
+    } 
+   
 });
 
 APP.post('/register',
@@ -387,7 +448,7 @@ APP.post('/login',
 );
 APP.post("/forgot-password", async function(req,res){
     const enteredEmailId = req.body.forgot_password_page_email;
-    const userEnteredEmailidVerification = await User.findOne({email: enteredEmailId});
+    const userEnteredEmailidVerification = await User.find({email: enteredEmailId});
     if (userEnteredEmailidVerification){
         const token = generateToken();
         const message = 'Hi, this is system generated email. Please enter the below token in the Create New Password page to reset the password (The token is only valid for 10 minutes):  '+ token;

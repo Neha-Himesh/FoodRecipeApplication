@@ -11,6 +11,7 @@
     <link rel="stylesheet" type="text/css" href="/styles/bootstrap-social.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.snow.css" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@100..900&display=swap" rel="stylesheet">
       <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
@@ -36,30 +37,139 @@
               <p><button id = "clicked_recipe_details_comments_button" onclick="toggleComments()"><b>View all the comments</b></button></p>
               <div id="clicked_recipe_details_comments_section" style="display: none;">
                 <% for(var i = 0; i < commentsDetails.length; i++) { %>
-                  <div id="<%= 'clicked_recipe_comments_display' + i %>" class="clicked_recipe_comments_display">
+                  <div id="<%= 'clicked_recipe_comments_display_' + commentsDetails[i]._id %>" class="clicked_recipe_comments_display">
                     <div class = "clicked_recipe_comments_display_username_and_time_container"> 
                       <p><%= commentsDetails[i].username %></p>
-                      <p id ="<%='clicked_recipe_comments_display_timestamp'+ i%>"><%= commentsDetails[i].timestamp%></p>
+                      <p id ="<%='clicked_recipe_comments_display_timestamp_'+ commentsDetails[i]._id %>"><%= commentsDetails[i].timestamp %></p>
                     </div>
-                    <p><%= commentsDetails[i].content %></p>
-                  </div>
+                    <p><%- commentsDetails[i].content %></p>
+                    <div class = "clicked_recipe_comments_like_and_reply_container">
+                        <div class = "clicked_recipe_comments_like_container">
+                          <button type = "button">Like</button>
+                          <p><%= commentsDetails[i].likes %></p>
+                        </div>
+                        
+                        <div class = "clicked_recipe_comments_reply_container">
+                          <button type = "submit" onclick="addReplyBox(this)">Reply</button>
+                          <p><%= commentTotalRepliesCount %></p>
+                        </div>   
+                    </div>
+                    <p><button id = "<%='clicked_recipe_comments_view_replies_button_' + commentsDetails[i]._id %>" onClick = "toggleReplies(this)">View the replies</button></p>
+                    <div class = "clicked_recipe_specific_comment_reply_box_quill_box">
+                      <div class = "clicked_recipe_specific_comment_reply_box_quill_tools_and_textbox " >
+                        <div class = "clicked_recipe_specific_comment_reply_quill_editor"></div>
+                      </div>  
+                      <div class="input-group-append">
+                        <button type="submit" onclick="addReplyToComments(this)" class="clicked_recipe_comments_enter_button"> <i class="fas fa-arrow-right"></i></button>
+                      </div>
+                    </div>
+                    <div class = "clicked_recipe_comment_reply_section" id = "<%='clicked_recipe_comment_reply_section_'+ commentsDetails[i]._id %>">
+                      <% for (var j = 0; j < commentsDetails[i].replies.length; j++) { %>
+                        <div id = "<%= 'clicked_recipe_comment_reply_id_'+ commentsDetails[i].replies[j]._id %>" class = "clicked_recipe_comment_reply">
+                          <div class = "clicked_recipe_comment_reply_username_and_time_container">
+                            <p><%=commentsDetails[i].replies[j].username %></p>
+                            <p id ="<%='clicked_recipe_comment_reply_timestamp_'+ commentsDetails[i].replies[j]._id %>"><%= commentsDetails[i].replies[j].timestamp%></p>
+                          </div>
+                          <p><%- commentsDetails[i].replies[j].content %></p>
+                          <div class = "clicked_recipe_comment_like_and_reply_container">
+                            <div class = "clicked_recipe_comment_like_container">
+                              <button type = "submit" onClick = "addLike()">Like</button>
+                              <p><%= commentsDetails[i].replies[j].likes %></p>
+                            </div>
+                            
+                            <div class = "clicked_recipe_comment_reply_container">
+                              <button type = "submit" onclick="addReplyBox(this)">Reply</button>
+                              <p><%= commentsDetails[i].commentTotalRepliesCount %></p>
+                            </div>
+                          </div>
+                        </div>
+                        <div class = "clicked_recipe_specific_comment_reply_box_quill_box">
+                          <div class = "clicked_recipe_specific_comment_reply_box_quill_tools_and_textbox " >
+                            <div class = "clicked_recipe_specific_comment_reply_quill_editor"></div>
+                          </div>  
+                          <div class="input-group-append">
+                            <button type="submit" onclick="addReplyToExistingReply()" class="clicked_recipe_comments_enter_button"> <i class="fas fa-arrow-right"></i></button>
+                          </div>
+                        </div>
+                       <%} %>
+                    </div>  
+                    </div>
                 <% } %>  
               </div>
             <% } %>
-            <div class="input-group mb-4 home_page_after_login_search_div">  
-              <textarea  placeholder="Add your comments here" name="clicked_recipe_comments_textarea" rows="1" cols="116" id="clicked_recipe_comment_textarea"></textarea>
+           <div class = "input-group mb-4 home_page_after_login_search_div">
+              <div class="quill_editor_tools_and_textbox">
+                <div id ="editor"> </div>
+              <!--- <textarea  placeholder="Add your comments here" name="clicked_recipe_comments_textarea" rows="1" cols="116" id="clicked_recipe_comment_textarea"></textarea> -->
+              </div>  
               <div class="input-group-append">
                 <button type="submit" onclick="addComments()" class="clicked_recipe_comments_enter_button"> <i class="fas fa-arrow-right"></i></button>
               </div>
-            </div>
+           </div>  
         </div>
         
     <% } %>    
 </body>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.js"></script>
 <script>
-    function goBack(){
+    let quill;
+    let quillInstanceForCommentReply;
+    document.addEventListener('DOMContentLoaded', function() {
+            quill = new Quill("#editor", {
+                theme: "snow"
+          });
+      });  
+    
+      document.addEventListener('DOMContentLoaded', function() {
+            quillForAddingReplyToComments = new Quill(".clicked_recipe_specific_comment_reply_quill_editor", {
+                theme: "snow"
+          });
+      });  
+
+    function addReplyBox(button){
+        if (!button) {
+          console.error('Button not defined');
+          return;
+      }
+      const replyBox = button.closest('.clicked_recipe_comments_display').querySelector('.clicked_recipe_specific_comment_reply_box_quill_box');
+        if (replyBox) {
+          if (replyBox.style.display !== "flex") {
+              replyBox.style.display = "flex";
+          } else {
+              console.log('Reply box is already visible');
+          }
+        } else {
+            console.error('Reply box not found');
+        }
+    }
+
+    function addReplyToComments(button){
+
+      const commentsContainer = button.parentElement.parentElement.parentElement;
+      console.log(commentsContainer);
+      var commentId = commentsContainer.id.split("_")[4];
+      var clickedRecipeDetailsId = document.querySelector('[id^="clicked_recipe_details_id_"]').id.split("_");
+      var clickedRecipeDetailsIdSplit = clickedRecipeDetailsId[4];
+      var addedCommentReplyText = quillForAddingReplyToComments.root.innerHTML;
+
+      console.log(addedCommentReplyText);
+        $.ajax({
+            type: "POST",
+            url: "/clicked-recipe-comment-reply/" +  commentId,
+            data: {  commentReplyText: addedCommentReplyText, clickedRecipeDetailsIdSplit: clickedRecipeDetailsIdSplit },
+            success: function (response) {
+                console.log("Response is:", response);
+                window.location.href = "/clicked-recipe/" + clickedRecipeDetailsIdSplit;
+            },  
+            error: function (error) {
+                console.error("Error is:", error);
+            }
+        });
+      }
+         
+      function goBack(){
         $.ajax({
           type: "GET",
           url: "/myRecipes",
@@ -73,17 +183,19 @@
         });
     }
     function addComments(){
-      var div_container_id = document.querySelector('[id^="clicked_recipe_details_id_"]').id.split("_");
-      var div_container_id_split = div_container_id[4];
-      var addedCommentText = document.getElementById("clicked_recipe_comment_textarea").value;
+      var clickedRecipeDetailsId = document.querySelector('[id^="clicked_recipe_details_id_"]').id.split("_");
+      var clickedRecipeDetailsIdSplit = clickedRecipeDetailsId[4];
+      var addedCommentText = quill.root.innerHTML;
+
+      console.log(addedCommentText);
      
       $.ajax({
           type: "POST",
-          url: "/clicked-recipe-comments/" + div_container_id_split,
+          url: "/clicked-recipe-comments/" + clickedRecipeDetailsIdSplit,
           data: { CommentText: addedCommentText },
           success: function (response) {
             console.log("Response is:", response);
-            window.location.href = "/clickedRecipe/" + div_container_id_split;
+            window.location.href = "/clicked-recipe/" + clickedRecipeDetailsIdSplit;
           },  
           error: function (error) {
             console.error("Error is:", error);
@@ -100,6 +212,20 @@
             commentsSection.style.display = "none";
             document.getElementById("clicked_recipe_details_comments_button").innerText= "View all the comments";
         }
+    }
+
+    function toggleReplies(button){
+      var commentToBeRepliedToId = button.id.split("_")[6];
+      console.log(commentToBeRepliedToId);
+      var replySection = document.getElementById("clicked_recipe_comment_reply_section_" + commentToBeRepliedToId);
+      console.log(replySection);
+      if (replySection.style.display === "none"){
+        replySection.style.display = "flex";
+        button.innerText = "Hide the replies";
+      } else {
+        replySection.style.display = "none";
+        button.innerText = "View the replies";
+      }
     }
 
     function formatTimeAgo(timestamp) {
@@ -128,10 +254,15 @@
 
     window.onload = function() {
         // Get the paragraph element
-        var timestampParagraphs = document.querySelectorAll('[id^="clicked_recipe_comments_display_timestamp"]');
+        var timestampParagraphs = document.querySelectorAll('[id^="clicked_recipe_comments_display_timestamp_"]');
+
+        var timestampRepliesParagraphs = document.querySelectorAll('[id^="clicked_recipe_comment_reply_timestamp_"]');
         // Call the formatData function and set the innerHTML of the paragraph to the formatted data
         for (var i = 0; i < timestampParagraphs.length; i ++){
           timestampParagraphs[i].innerHTML = formatTimeAgo(timestampParagraphs[i].innerText);
+        }
+        for (var i = 0; i < timestampRepliesParagraphs.length; i ++){
+          timestampRepliesParagraphs[i].innerHTML = formatTimeAgo(timestampRepliesParagraphs[i].innerText);
         }
         
     };

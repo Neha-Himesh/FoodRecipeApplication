@@ -12,10 +12,74 @@
     border-radius: 1%;
 }
 
-.clicked_recipe_comments_display_username_and_time_container{
+.clicked_recipe_details_comments_section{
+    display: none;
+    flex-direction: column;
+}
+.clicked_recipe_comments_display_username_and_time_container, .clicked_recipe_comment_reply_username_and_time_container{
     display: flex;
     flex-direction: row;
     justify-content:space-between;
     gap: 15px;
 
+}
+
+.clicked_recipe_comment_like_and_reply_container, .clicked_recipe_comments_like_and_reply_container{
+    display: flex;
+    flex-direction: row;
+    justify-content:normal;
+    gap: 20px;
+}
+
+.clicked_recipe_comment_like_container, .clicked_recipe_comment_reply_container, .clicked_recipe_comments_like_container, .clicked_recipe_comments_reply_container{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.quill_editor_tools_and_textbox, .clicked_recipe_specific_comment_reply_box_quill_tools_and_textbox {
+    width: 95%;
+}
+
+ /* Flex container for editor and button */
+ .input-group {
+    display: flex;
+    align-items: center;
+}
+
+/* Flex item for Quill editor */
+#editor {
+    flex: 1;
+}
+
+.input-group-append {
+    width: 5%;
+}
+
+/* Styling for the submit button */
+.clicked_recipe_comments_enter_button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: flex-end;
+    width: 100%;
+    padding: 0 10px; /* Adjust as needed */
+    font-size: 24px; /* Adjust icon size as needed */
+}
+
+.clicked_recipe_specific_comment_reply_box_quill_box{
+    display: none;
+    width: 95%;
+
+}
+
+.clicked_recipe_comment_reply_section{
+    display: none;
+    padding-left: 60px;
+    flex-direction: column;
+    align-items: normal;
+    justify-content: normal;
+    gap: 40px;
 }

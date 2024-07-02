@@ -7,7 +7,7 @@ const uri = "mongodb://127.0.0.1:27017/RecipesUsers";
 
 async function connectToDatabase() {
     try {
-      await MONGOOSE.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+      await MONGOOSE.connect(uri);
       console.log("Connected to MongoDB");
     } catch (error) {
       console.error("Error connecting to MongoDB:", error);
@@ -69,7 +69,7 @@ function createRandomUsers() {
   }
   
   // Generate an array of 5 random recipes
-  const USERS = Array.from({ length: 25 }, createRandomUsers);
+  const USERS = Array.from({ length: 250 }, createRandomUsers);
   
   async function insertUsersToMongoDB() {
     try {
@@ -81,4 +81,4 @@ function createRandomUsers() {
     } 
   }
   
-module.exports = {User,insertUsersToMongoDB};
+module.exports = {User, insertUsersToMongoDB};
