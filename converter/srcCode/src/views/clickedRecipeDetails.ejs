@@ -20,7 +20,7 @@
 
 <body>
     <button  onclick="goBack()">Back</button>
-    <% if (locals.clickedRecipeDetails) { %>
+    <% if (locals.clickedRecipeDetails && locals.loggedInUsernameDetails) { %>
         <div class = "clicked_recipe_details_container" id = "<%= 'clicked_recipe_details_id_' +clickedRecipeDetails._id  %>">
             <p><b>Recipe's title: </b><%= clickedRecipeDetails.title %></p>
             <p><img class = "clickedRecipeDetails_image" src = "<%= clickedRecipeDetails.added_image_url %>" alt ="<%= clickedRecipeDetails.title %>"></p>
@@ -45,13 +45,16 @@
                     <p><%- commentsDetails[i].content %></p>
                     <div class = "clicked_recipe_comments_like_and_reply_container">
                         <div class = "clicked_recipe_comments_like_container">
-                          <button type = "button">Like</button>
-                          <p><%= commentsDetails[i].likes %></p>
+                          <button type = "button" onclick="addLikeToComment(this)" class = "clicked_recipe_comment_like_button" >Like</button>
+                          <% if (Array.isArray(commentsDetails[i].likes)) {%>
+                            <p><%= commentsDetails[i].likes.length %></p>
+                            <p class = "clicked_recipe_comments_likes_details"><%= commentsDetails[i].likes %></p>
+                          <% } %>  
+                          <p class = "username_details_of_logged_in_user"><%= loggedInUsernameDetails %></p>
                         </div>
-                        
                         <div class = "clicked_recipe_comments_reply_container">
                           <button type = "submit" onclick="addReplyBox(this)">Reply</button>
-                          <p><%= commentTotalRepliesCount %></p>
+                          <p><%= commentsDetails[i].replies.length %></p>
                         </div>   
                     </div>
                     <p><button id = "<%='clicked_recipe_comments_view_replies_button_' + commentsDetails[i]._id %>" onClick = "toggleReplies(this)">View the replies</button></p>
@@ -73,8 +76,8 @@
                           <p><%- commentsDetails[i].replies[j].content %></p>
                           <div class = "clicked_recipe_comment_like_and_reply_container">
                             <div class = "clicked_recipe_comment_like_container">
-                              <button type = "submit" onClick = "addLike()">Like</button>
-                              <p><%= commentsDetails[i].replies[j].likes %></p>
+                              <button type = "submit" class = "clicked_recipe_comments_reply_like_button" onClick = "addLike()">Like</button>
+                              <p><%= commentsDetails[i].replies[j].likes.length %></p>
                             </div>
                             
                             <div class = "clicked_recipe_comment_reply_container">
@@ -144,9 +147,43 @@
             console.error('Reply box not found');
         }
     }
+    
+    function addLikeToComment(button){
+      const commentId = button.parentElement.parentElement.parentElement.id.split("_")[4];
+      var clickedRecipeDetailsId = document.querySelector('[id^="clicked_recipe_details_id_"]').id.split("_");
+      var clickedRecipeDetailsIdSplit = clickedRecipeDetailsId[4];
+      if(button.innerText === "Like"){
+        $.ajax({
+          type: "POST",
+          url: "/clicked-recipe-comment-like/" + commentId,
+          data: {clickedRecipeDetailsIdSplit: clickedRecipeDetailsIdSplit },
+          success: function (response) {
+                console.log("Response is:", response);
+                button.innerText = "Liked";
+                button.nextElementSibling.innerText = parseInt(button.nextElementSibling.innerText) + 1;
+            },  
+            error: function (error) {
+                console.error("Error is:", error);
+            }
+       });
+      } else {
+        $.ajax({ type: "POST",
+        url: "/clicked-recipe-comment-unlike/" + commentId,
+        data: {clickedRecipeDetailsIdSplit: clickedRecipeDetailsIdSplit },
+        success: function (response) {
+                console.log("Response is:", response);
+                button.innerText = "Like";
+                button.nextElementSibling.innerText = parseInt(button.nextElementSibling.innerText) - 1;
+           },
+        error: function(error) {
+                console.error("Error is:", error);
+            }
+      });
+       
+      }  
+    }
 
     function addReplyToComments(button){
-
       const commentsContainer = button.parentElement.parentElement.parentElement;
       console.log(commentsContainer);
       var commentId = commentsContainer.id.split("_")[4];
@@ -257,6 +294,22 @@
         var timestampParagraphs = document.querySelectorAll('[id^="clicked_recipe_comments_display_timestamp_"]');
 
         var timestampRepliesParagraphs = document.querySelectorAll('[id^="clicked_recipe_comment_reply_timestamp_"]');
+
+        var clickedRecipeLikesDetailsElements = document.getElementsByClassName("clicked_recipe_comments_likes_details");
+        for (var j = 0; j < clickedRecipeLikesDetailsElements.length; j ++ ){
+          var clickedRecipeLikesDetails = clickedRecipeLikesDetailsElements[j].innerText.split(",");
+          var loggedInUsernameDetailsElements = document.getElementsByClassName("username_details_of_logged_in_user");
+          var loggedInUsernameDetails = loggedInUsernameDetailsElements[0].innerText;
+          console.log(clickedRecipeLikesDetails);
+          for (var i = 0; i < clickedRecipeLikesDetails.length; i ++){
+            if (clickedRecipeLikesDetails[i] === loggedInUsernameDetails){
+              var LikeButtonText = document.getElementsByClassName("clicked_recipe_comment_like_button")[j];
+              console.log(LikeButtonText);
+              LikeButtonText.innerText = "Liked";
+            }
+          }
+        }
+        
         // Call the formatData function and set the innerHTML of the paragraph to the formatted data
         for (var i = 0; i < timestampParagraphs.length; i ++){
           timestampParagraphs[i].innerHTML = formatTimeAgo(timestampParagraphs[i].innerText);

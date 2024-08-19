@@ -83,3 +83,11 @@
     justify-content: normal;
     gap: 40px;
 }
+
+.clicked_recipe_comments_likes_details{
+    display: none;
+}
+
+.username_details_of_logged_in_user{
+    display: none;
+}

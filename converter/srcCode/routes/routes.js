@@ -155,6 +155,7 @@ APP.get("/my-recipes", async function(req, res){
 APP.get('/clicked-recipe/:id', async function(req,res){
     if (req.isAuthenticated()) {
         try {
+            const usernameDetailsOfLoggedInUser = req.session.user.username;
             const clickedRecipeDetails = await RECIPE.findById(req.params.id);
             const commentsDetails = await COMMENTS.find({recipe_id: req.params.id});
             if (clickedRecipeDetails) {
@@ -169,13 +170,22 @@ APP.get('/clicked-recipe/:id', async function(req,res){
                     });
                     return totalCount;
                     }
+                    function countLikes(likes){
+                        if (!Array.isArray(likes)) {
+                            return 0;
+                        }
+                        var totalCount = likes.length;
+                        return totalCount;
+                    }
+                    
                     const totalRepliesCount = countReplies(commentsDetails.replies);
-                    console.log(totalRepliesCount);
-                    res.render("clickedRecipeDetails.ejs", { clickedRecipeDetails: clickedRecipeDetails, commentsDetails: commentsDetails, commentTotalRepliesCount: totalRepliesCount });
+                    //console.log(totalRepliesCount);
+                    const totalLikesCount = countLikes(commentsDetails.likes);
+                    res.render("clickedRecipeDetails.ejs", { clickedRecipeDetails: clickedRecipeDetails, commentsDetails: commentsDetails, commentTotalRepliesCount: totalRepliesCount, commentTotalLikesCount: totalLikesCount, loggedInUsernameDetails: usernameDetailsOfLoggedInUser });
                 }
                 else{
                     console.log("No comments to display");
-                    res.render("clickedRecipeDetails.ejs", { clickedRecipeDetails: clickedRecipeDetails });
+                    res.render("clickedRecipeDetails.ejs", { clickedRecipeDetails: clickedRecipeDetails, loggedInUsernameDetails: usernameDetailsOfLoggedInUser });
                 }
             } else {
                 res.status(404).send("Recipe Details not found");
@@ -250,7 +260,7 @@ APP.post('/clicked-recipe-comments/:id', async function(req,res){
                     timestamp: new Date(),
                     recipe_id: req.params.id,
                     username:  req.session.user.username,
-                    likes: 0,
+                    likes: [],
                 });
                 const savedCommentDetails = await recipeComment.save();
                 if (savedCommentDetails){
@@ -273,6 +283,93 @@ APP.post('/clicked-recipe-comments/:id', async function(req,res){
     } 
 });
 
+APP.post('/clicked-recipe-comment-like/:id', async function(req,res){
+    if (req.isAuthenticated()){
+        try {
+       
+            const commentDetails = await COMMENTS.findById(req.params.id);
+            const usernameDetailsOfUserWhoLikedTheComment = req.session.user.username;
+             /*var commentsWhichHaveLikeAsNonArrayDataType = await COMMENTS.find({ likes: { $not: { $type: "array" } } });
+            console.log(commentsWhichHaveLikeAsNonArrayDataType);
+            var i = 0;
+            const commentsWithNonArrayLikes = await COMMENTS.find({ likes: { $not: { $type: "array" } } });
+            for (const doc of commentsWithNonArrayLikes) {
+                let newLikes;
+                if (doc.likes === 0 || (Array.isArray(doc.likes) && (doc.likes[0] === 0 || doc.likes[0] === null))) {
+                    newLikes = [];
+                } else {
+                    newLikes = [doc.likes];
+                }
+
+                // Convert 'likes' to an array
+                /*
+                let newLikes;
+                if (doc.likes !== undefined && doc.likes === 0) {
+                    newLikes = [];
+                } else if(doc.likes !== undefined && doc.likes[0] === 0){
+                    console.log(doc);
+                    newLikes = [];
+                } else {
+                    newLikes = [doc.likes];
+                } */ 
+
+            /* Update the document
+                await COMMENTS.updateOne(
+                    { _id: doc._id },
+                    { $set: { likes: newLikes } }
+                );
+            } */
+            if (commentDetails){
+                if (!commentDetails.likes.includes(usernameDetailsOfUserWhoLikedTheComment)) {
+                    commentDetails.likes.push(usernameDetailsOfUserWhoLikedTheComment);
+                    await commentDetails.save();
+                    res.status(200).send("Like added to comment successfully");
+                } else {
+                    res.status(403).send("Like already added");
+                }
+                  
+            } else{
+                res.status(404).send("Comment not found");
+            }
+            } catch(error) {
+                console.error(error);
+                res.status(500).send("Internal Server Error");
+            }
+    } else {
+            // Handle authentication failure
+        res.status(401).send("Unauthorized");
+    }     
+});
+
+APP.post('/clicked-recipe-comment-unlike/:id', async function(req, res){
+    if (req.isAuthenticated()){
+        try {
+            const commentDetails = await COMMENTS.findById(req.params.id);
+            const usernameDetailsOfUserWhoLikedTheComment = req.session.user.username;
+            if (commentDetails){
+                var originalCommentLikesLength = commentDetails.likes.length;
+                const index = commentDetails.likes.indexOf(usernameDetailsOfUserWhoLikedTheComment)
+                if (index !== -1){
+                    commentDetails.likes.splice(index,1);
+                    await commentDetails.save();
+
+                    res.status(200).send("Like removed from comment successfully");
+                } else {
+                    res.status(404).send("Like not found");
+                }
+                   
+            } else{
+                res.status(404).send("Comment not found");
+            }
+        }catch (error){
+            console.error(error);
+            res.status(500).send("Internal Server Error");
+        }   
+    } else {
+        res.status(401).send("Unauthorized");
+    }     
+});
+
 APP.post('/clicked-recipe-comment-reply/:id', async function(req,res){
     if (req.isAuthenticated()) {
         try {
@@ -286,7 +383,7 @@ APP.post('/clicked-recipe-comment-reply/:id', async function(req,res){
                     },
                 });
                 const replyDetails = {
-                    likes: 0,
+                    likes: [],
                     username: usernameDetailsOfTypedComment,
                     recipe_id: req.body.clickedRecipeDetailsIdSplit,
                     timestamp: new Date(),
@@ -295,7 +392,7 @@ APP.post('/clicked-recipe-comment-reply/:id', async function(req,res){
                 commentDetails.replies.push(replyDetails);
                 await commentDetails.save(); 
                 
-                res.status(200).send("Comment added successfully")
+                res.status(200).send("Comment added successfully");
                 
             } else {
                 res.status(404).send("Comment not found");
